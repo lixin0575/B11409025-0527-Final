@@ -4,9 +4,9 @@
 
 ## 基本資料
 
-**學號：** B11xxxxxx  
+**學號：** B11409025
 **系級：** 資管系大一  
-**姓名：** 王小明  
+**姓名：** 羅芷婕
 
 ---
 
@@ -16,19 +16,19 @@
 
 | 原始變數名稱 | 代表意義 (Business Logic) | 建議修正名稱 |
 |---|---|---|
-| Q1 l1 (in load_proc) | | |
-| Q2 d2 (in main) | | |
-| Q3 c_res (in check) | | |
+| Q1 l1 (in load_proc) |從檔案讀進來的所有資料行|lines|
+| Q2 d2 (in main) |儲存所有書籍資料的清單|books|
+| Q3 c_res (in check) |檢查 ISBN 是否存在|check_isbn_exists|
 
 ### 1.2 壞味道 (Code Smells) 診斷
 
 請列出原程式碼中至少 5 個嚴重的設計問題，並說明為什麼不好：
 
-- **Q1：** (範例：缺乏XXX，當XXX)
-- **Q2：**
-- **Q3：**
-- **Q4：**
-- **Q5：**
+- **Q1：**具有過多爛變數命名(如：d2、l1、p、p2、v、b)
+- **Q2：**所有功能都寫在 main()
+- **Q3：**沒有錯誤處理
+- **Q4：**borrow 沒檢查狀態導致已經 borrowed 還能再 borrow
+- **Q5：**沒有使用者提示
 
 ---
 
@@ -42,21 +42,26 @@
 請貼出你對 AI 下達過最有效的 3 個 Prompt：
 
 ```log
-Prompt A： 
+Prompt A： 請幫我將這個Legacy圖書管理系統重構成模組化函式，並將 add、show、borrow、load、save 功能拆分成獨立 function
 
-Prompt B： 
+Prompt B： 請將原本使用txt的資料儲存方式改為JSON格式
 
-Prompt C：
+Prompt C：請加入try-except來錯誤處理、改善變數命名，並新增help選單來提升使用者體驗
 ```
 
 ### 2.2 AI 錯誤處理
 
 1. AI 在撰寫過程中是否有出錯？（例如：漏寫了某個功能、語法錯誤）你是如何發現並請它修正的？
+一開始產生的程式沒有檢查borrow狀態，導致同一本已經borrowed的書仍然可以再次borrow，我透過重複借用同一本書發現的
 
 2. 發現的問題： (範例：AI 漏掉了 exit 時要印出分類統計的功能)
-
+1.已借出的書仍然可以再次借閱
+2.使用者輸入錯誤格式時提示不夠清楚
+3.沒有處理 JSON 檔案格式錯誤
 3. 修正的對話： (範例：我告訴它「請在結束前迴圈遍歷 JSON 資料並計算分類總額」)
-
+1.請在borrow功能中加入狀態檢查，避免borrowed的書被重複借閱
+2.請新增help指令與使用說明
+3.請加入try-except錯誤處理，避免JSON檔案損毀時程式直接崩潰
 ---
 
 ## 三、 成果驗證與測試  (共2小題，每小題10分，總共20分)
@@ -68,7 +73,40 @@ Prompt C：
 請貼上執行程式並輸入 show 後，顯示資料清單。(請從呼叫執行程式到結束程式完整的把操作對話複製到下框)
 
 ```log
-
+=== 圖書管理系統 v1.0 (Modern) ===
+可用指令：
+add 書名/ISBN/狀態
+show
+borrow ISBN
+help
+exit
+> add 深入淺出Python/978001/available
+Success
+> add 資料結構理論/978002/available
+Success
+> add 演算法實作/978003/available
+Success
+> add 重複測試書/978001/available   
+ISBN Exist
+> add 演算法實作/978003/available
+ISBN Exist
+> borrow 978002   
+Updated
+> show
+書名: 深入淺出Python, ISBN: 978001, 狀態: available   
+書名: 資料結構理論, ISBN: 978002, 狀態: borrowed      
+書名: 演算法實作, ISBN: 978003, 狀態: available
+> help
+可用指令：
+add 書名/ISBN/狀態
+show
+borrow ISBN
+help
+exit
+> borrow 978002
+這本書已經被借出
+> exit
+系統關閉
 ```
 
 ### 3.2 產出的資料檔案格式
@@ -77,12 +115,23 @@ Prompt C：
 
 ```json
 [
-  {
-    "title": "XXX",
-    "isbn": "XXX",
-    "status": "XXX"
-  }
+    {
+        "title": "深入淺出Python",
+        "isbn": "978001",
+        "status": "available"
+    },
+    {
+        "title": "資料結構理論",
+        "isbn": "978002",
+        "status": "borrowed"
+    },
+    {
+        "title": "演算法實作",
+        "isbn": "978003",
+        "status": "available"
+    }
 ]
+
 ```
 
 ---
@@ -93,7 +142,7 @@ Prompt C：
 
 
 ```log
-# 請在此處貼上 git log 內容
+3ad2114 (HEAD -> master) Refactor library system
 ```
 
 ### 4.2. GitHub Repository 連結(此小題7分)
@@ -101,9 +150,11 @@ Prompt C：
 將專案推送到 GitHub (Public) 若提交到 Private 連結不給分。 請設定 Repository 名稱為 `學號-0527-Final` Ex: B11526748-0527-Final **請用 - 不是 _**
 
 ```log
-# 請貼上你的 Repo 網址
+https://github.com/lixin0575/B11409025-0527-Final
 ```
 
 希望這兩份 Markdown 格式能幫你省下不少排版時間！祝你的考試順利舉行！
 
 最後請保留整份專案資料夾歐！
+
+s
